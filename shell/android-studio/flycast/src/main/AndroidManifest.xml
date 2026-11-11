@@ -53,6 +53,17 @@
 		android:restoreAnyVersion="true">
 
         <meta-data android:name="android.max_aspect" android:value="2.1" />
+
+        <!-- MainUI State API: MainUI (a frontend) saves and loads states with broadcasts. -->
+        <meta-data android:name="io.github.mainui.STATE_API" android:value="1" />
+        <receiver
+            android:name="io.github.mainui.stateapi.MainUIStateApi$Receiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="io.github.mainui.stateapi.COMMAND" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name="com.flycast.emulator.NativeGLActivity"
             android:configChanges="orientation|navigation|screenSize|screenLayout|uiMode|keyboard|keyboardHidden"

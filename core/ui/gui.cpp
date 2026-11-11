@@ -1705,3 +1705,44 @@ bool __cdecl Concurrency::details::_Task_impl_base::_IsNonBlockingThread() {
 	return false;
 }
 #endif
+
+// MainUI State API (Android, io.github.mainui.stateapi): saves or loads state [index] the way
+// the menu does, while the game runs with the menu closed. Returns what went wrong, or "".
+std::string gui_mainuiState(bool save, int index)
+{
+	const LockGuard lock(guiMutex);
+	if (gui_state != GuiState::Closed || !emu.running())
+		return "the game isn't running";
+	if (!dc_savestateAllowed())
+		return "no states now (netplay or linked cabinets)";
+	if (!save && settings.raHardcoreMode)
+		return "RetroAchievements hardcore mode doesn't allow loading states";
+	try {
+		emu.stop();
+		if (save)
+		{
+			std::vector<u8> pngData;
+			getScreenshot(pngData, 640);
+			dc_savestate(index, pngData.empty() ? nullptr : &pngData[0], pngData.size());
+		}
+		else
+			dc_loadstate(index);
+		emu.start();
+	} catch (const FlycastException& e) {
+		gui_stop_game(e.what());
+		return e.what();
+	}
+	return "";
+}
+
+// MainUI State API: when state [index] was saved (0: none), and its file (the menu's own lookups,
+// under its lock).
+time_t gui_mainuiStateTime(int index, std::string *path)
+{
+	const LockGuard lock(guiMutex);
+	if (settings.content.path.empty())
+		return 0;
+	if (path != nullptr)
+		*path = hostfs::getSavestatePath(index, false);
+	return dc_getStateCreationDate(index);
+}

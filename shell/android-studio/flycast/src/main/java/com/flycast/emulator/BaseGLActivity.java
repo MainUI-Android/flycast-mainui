@@ -71,6 +71,8 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
             finish();
             return;
         }
+        // MainUI State API: MainUI (a frontend) saves and loads states directly.
+        io.github.mainui.stateapi.MainUIStateApi.attach(io.github.mainui.stateapi.FlycastStates.INSTANCE);
         // Set the navigation bar color to 0 to avoid left over when it fades out on Android 10
         Window window = getWindow();
         window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
@@ -207,6 +209,8 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (isFinishing())
+            io.github.mainui.stateapi.MainUIStateApi.detach(io.github.mainui.stateapi.FlycastStates.INSTANCE);
         paused = true;
         InputDeviceManager.getInstance().stopListening();
         register(null);
@@ -448,6 +452,8 @@ public abstract class BaseGLActivity extends Activity implements ActivityCompat.
 
     // Called from native code
     public void onGameStateChange(boolean started) {
+        if (started) // (a new game too: MainUI's commands go to it from now on)
+            io.github.mainui.stateapi.MainUIStateApi.attach(io.github.mainui.stateapi.FlycastStates.INSTANCE);
         runOnUiThread(new Runnable() {
             public void run() {
                 if (started)

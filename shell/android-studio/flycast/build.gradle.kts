@@ -19,10 +19,12 @@ android {
 
     defaultConfig {
         applicationId = "com.flycast.emulator"
+        // MainUI-Android build: installs beside the official app (CI sets the version).
+        applicationIdSuffix = ".mainui"
         minSdk = 21
         targetSdk = 36
-        versionCode = 8
-        versionName = gitVersionName()
+        versionCode = System.getenv("MAINUI_VERSION_CODE")?.toIntOrNull() ?: 8
+        versionName = System.getenv("MAINUI_VERSION_NAME") ?: gitVersionName()
         vectorDrawables.useSupportLibrary = true
 
         externalNativeBuild {
@@ -56,7 +58,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            // MainUI-Android: debug-signed here, CI signs the APK itself.
+            signingConfig = signingConfigs.getByName(if (System.getenv("ANDROID_KEYSTORE_PASSWORD").isNullOrEmpty()) "debug" else "release")
         }
     }
     compileOptions {
