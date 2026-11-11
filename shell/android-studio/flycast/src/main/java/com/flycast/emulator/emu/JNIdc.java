@@ -33,6 +33,8 @@ public final class JNIdc
 	public static native boolean mainuiReady();
 	/** Saves (or loads) state [index]: what went wrong, or "". */
 	public static native String mainuiState(boolean save, int index);
+	/** Stops (or starts again) the game, the menu closed: false if it wasn't running (stopped). */
+	public static native boolean mainuiPause(boolean pause);
 	/** When state [index] was saved, ms since 1970 (0: none). */
 	public static native long mainuiStateTime(int index);
 	public static native String mainuiStatePath(int index);
