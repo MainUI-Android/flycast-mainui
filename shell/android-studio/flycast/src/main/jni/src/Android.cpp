@@ -569,6 +569,7 @@ Java_com_flycast_emulator_RetroAchievementsHostOverrideReceiver_nativeSetHostOve
 // loads states directly.
 std::string gui_mainuiState(bool save, int index);
 time_t gui_mainuiStateTime(int index, std::string *path);
+bool gui_mainuiPause(bool pause);
 
 extern "C" JNIEXPORT jboolean JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiRunning(JNIEnv *env, jobject obj)
 {
@@ -587,6 +588,11 @@ extern "C" JNIEXPORT jstring JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiS
 {
 	std::string error = gui_mainuiState(save, index);
 	return env->NewStringUTF(error.c_str());
+}
+
+extern "C" JNIEXPORT jboolean JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiPause(JNIEnv *env, jobject obj, jboolean pause)
+{
+	return gui_mainuiPause(pause);
 }
 
 extern "C" JNIEXPORT jlong JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiStateTime(JNIEnv *env, jobject obj, jint index)

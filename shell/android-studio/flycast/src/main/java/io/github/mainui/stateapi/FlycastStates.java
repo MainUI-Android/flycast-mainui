@@ -24,6 +24,10 @@ public final class FlycastStates implements MainUIStateApi.Emulator {
 
     @Override public int slotCount() { return SLOTS; }
 
+    @Override public boolean pause() { return JNIdc.mainuiPause(true); }
+
+    @Override public void resume() { JNIdc.mainuiPause(false); }
+
     @Override
     public String save(int slot) throws Exception {
         int index = index(slot);

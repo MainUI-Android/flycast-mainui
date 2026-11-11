@@ -1735,6 +1735,25 @@ std::string gui_mainuiState(bool save, int index)
 	return "";
 }
 
+// MainUI State API: stops (or starts again) the game as opening the menu does, the menu staying
+// closed (MainUI shows its own).
+bool gui_mainuiPause(bool pause)
+{
+	const LockGuard lock(guiMutex);
+	if (gui_state != GuiState::Closed || pause != emu.running())
+		return false;
+	try {
+		if (pause)
+			emu.stop();
+		else
+			emu.start();
+	} catch (const FlycastException& e) {
+		gui_stop_game(e.what());
+		return false;
+	}
+	return true;
+}
+
 // MainUI State API: when state [index] was saved (0: none), and its file (the menu's own lookups,
 // under its lock).
 time_t gui_mainuiStateTime(int index, std::string *path)
