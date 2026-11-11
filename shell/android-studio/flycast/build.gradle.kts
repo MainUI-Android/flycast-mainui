@@ -19,12 +19,10 @@ android {
 
     defaultConfig {
         applicationId = "com.flycast.emulator"
-        // MainUI-Android build: installs beside the official app (CI sets the version).
-        applicationIdSuffix = ".mainui"
         minSdk = 21
         targetSdk = 36
-        versionCode = System.getenv("MAINUI_VERSION_CODE")?.toIntOrNull() ?: 8
-        versionName = System.getenv("MAINUI_VERSION_NAME") ?: gitVersionName()
+        versionCode = 8
+        versionName = gitVersionName()
         vectorDrawables.useSupportLibrary = true
 
         externalNativeBuild {
@@ -58,8 +56,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // MainUI-Android: debug-signed here, CI signs the APK itself.
-            signingConfig = signingConfigs.getByName(if (System.getenv("ANDROID_KEYSTORE_PASSWORD").isNullOrEmpty()) "debug" else "release")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -95,4 +92,17 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+}
+// MainUI-Android build (kept apart from upstream's lines, so merges and release builds apply it
+// cleanly): installs beside the official app, its version from CI, debug-signed without
+// upstream's key (CI signs the APK itself).
+android {
+    defaultConfig {
+        applicationIdSuffix = ".mainui"
+        System.getenv("MAINUI_VERSION_CODE")?.toIntOrNull()?.let { versionCode = it }
+        System.getenv("MAINUI_VERSION_NAME")?.let { versionName = it }
+    }
+    buildTypes.getByName("release") {
+        if (System.getenv("ANDROID_KEYSTORE_PASSWORD").isNullOrEmpty()) signingConfig = signingConfigs.getByName("debug")
+    }
 }
