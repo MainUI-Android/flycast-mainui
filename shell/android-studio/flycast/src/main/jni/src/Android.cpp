@@ -564,3 +564,39 @@ Java_com_flycast_emulator_RetroAchievementsHostOverrideReceiver_nativeSetHostOve
 	if (host)
 		env->ReleaseStringUTFChars(jhost, host);
 }
+
+// MainUI State API (io.github.mainui.stateapi.FlycastStates): MainUI (a frontend) saves and
+// loads states directly.
+std::string gui_mainuiState(bool save, int index);
+time_t gui_mainuiStateTime(int index, std::string *path);
+
+extern "C" JNIEXPORT jboolean JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiRunning(JNIEnv *env, jobject obj)
+{
+	// A game is loaded (not the game list or its loading screen).
+	return !settings.content.path.empty() && gui_state != GuiState::Main && gui_state != GuiState::Loading
+			&& gui_state != GuiState::Onboarding;
+}
+
+extern "C" JNIEXPORT jboolean JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiReady(JNIEnv *env, jobject obj)
+{
+	// It runs, with the menu closed (the screen in the background stops it).
+	return gui_state == GuiState::Closed && emu.running() && dc_savestateAllowed();
+}
+
+extern "C" JNIEXPORT jstring JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiState(JNIEnv *env, jobject obj, jboolean save, jint index)
+{
+	std::string error = gui_mainuiState(save, index);
+	return env->NewStringUTF(error.c_str());
+}
+
+extern "C" JNIEXPORT jlong JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiStateTime(JNIEnv *env, jobject obj, jint index)
+{
+	return (jlong)gui_mainuiStateTime(index, nullptr) * 1000;
+}
+
+extern "C" JNIEXPORT jstring JNICALL Java_com_flycast_emulator_emu_JNIdc_mainuiStatePath(JNIEnv *env, jobject obj, jint index)
+{
+	std::string path;
+	gui_mainuiStateTime(index, &path);
+	return env->NewStringUTF(path.c_str());
+}
