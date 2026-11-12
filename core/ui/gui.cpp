@@ -1737,20 +1737,29 @@ std::string gui_mainuiState(bool save, int index)
 
 // MainUI State API: stops (or starts again) the game as opening the menu does, the menu staying
 // closed (MainUI shows its own).
+// MainUI State API: emulation was stopped by gui_mainuiPause (not by Flycast itself, in the background).
+static bool mainuiStopped;
+
 bool gui_mainuiPause(bool pause)
 {
 	const LockGuard lock(guiMutex);
+	if (emu.running())
+		mainuiStopped = false;
 	if (gui_state != GuiState::Closed)
 		return false;
-	// Already stopped by an earlier MainUI pause (the menu closed): paused all the same.
+	// Already as asked: paused only if an earlier MainUI pause stopped it; resumed only by MainUI.
 	if (pause != emu.running())
-		return pause;
+		return pause && mainuiStopped;
+	if (!pause && !mainuiStopped)
+		return false;
 	try {
 		if (pause)
 			emu.stop();
 		else
 			emu.start();
+		mainuiStopped = pause;
 	} catch (const FlycastException& e) {
+		mainuiStopped = false;
 		gui_stop_game(e.what());
 		return false;
 	}
