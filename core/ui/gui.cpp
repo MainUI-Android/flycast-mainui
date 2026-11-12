@@ -1740,8 +1740,11 @@ std::string gui_mainuiState(bool save, int index)
 bool gui_mainuiPause(bool pause)
 {
 	const LockGuard lock(guiMutex);
-	if (gui_state != GuiState::Closed || pause != emu.running())
+	if (gui_state != GuiState::Closed)
 		return false;
+	// Already stopped by an earlier MainUI pause (the menu closed): paused all the same.
+	if (pause != emu.running())
+		return pause;
 	try {
 		if (pause)
 			emu.stop();
